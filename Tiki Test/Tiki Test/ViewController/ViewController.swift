@@ -135,16 +135,16 @@ extension ViewController {
                 for tweetContent in tweetContentList {
                     contentList.append(tweetContent)
                 }
+                
+                // Reset input
+                textView.text = ""
+                textView.resignFirstResponder()
             }
             
             tableView.reloadData()
         }
         
         self.updateSendButtonEnable()
-        
-        // Reset input
-        textView.text = ""
-        textView.resignFirstResponder()
         
         // Reset layout
         self.textViewHeightConstraint.constant = 30
