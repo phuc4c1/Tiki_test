@@ -72,55 +72,68 @@ extension ViewController {
         return numberCharacter > 0 ? numberCharacter : 0
     }
     
-    
     func validateTweetContent(tweetContent: String) -> [String] {
         if tweetContent.count < 50 {
             return [tweetContent]
         } else {
             var tweetList = tweetContent.components(separatedBy: " ")
             
-            // Get toal sub tweet: this formula is not correct.
-            // TODO: update formula later
-            let totalSubTweet = (tweetContent.count / 50) + 1
-            var subTweetIndex = 1
+            // Add prefix for all separate subtweet
+            let totalSubTweet = tweetList.count
+            var subTweetIndex = 0
             
-            var newSubTweetList: [String] = []
-            var tempSubTweetList: [String] = []
-            tempSubTweetList.append("\(subTweetIndex)/\(totalSubTweet)")
-            
-            while tweetList.count > 0 {
-                let subTweet = tweetList.removeFirst()
-                tempSubTweetList.append(subTweet)
+            var newSubTweetList: [[String]] = []
+            while subTweetIndex < tweetList.count {
+                var tempSubTweet: [String] = []
+                tempSubTweet.append("\(subTweetIndex + 1)/\(totalSubTweet)")
+                tempSubTweet.append(tweetList[subTweetIndex])
                 
-                // for case: Last subTweet
-                if tweetList.count == 0 {
-                    let newSubTweet = tempSubTweetList.joined(separator: " ")
-                    newSubTweetList.append(newSubTweet)
-                    
-                    break
-                }
+                newSubTweetList.append(tempSubTweet)
                 
-                let totalCharacterSubTweet = self.getTotalCharacter(stringList: tempSubTweetList)
-                
-                // If append new subTweet > 50 character -> re-insert last subtweet,
-                if totalCharacterSubTweet > 50 {
-                    let lastSubTweet = tempSubTweetList.removeLast()
-                    tweetList.insert(lastSubTweet, at: 0)
-                    
-                    // Add new sub tweet
-                    let newSubTweet = tempSubTweetList.joined(separator: " ")
-                    newSubTweetList.append(newSubTweet)
-                    
-                    // Reset temp sub tweet
-                    tempSubTweetList.removeAll()
-                    subTweetIndex = subTweetIndex + 1
-                    tempSubTweetList.append("\(subTweetIndex)/\(totalSubTweet)")
-                    
-                }
-                
+                subTweetIndex = subTweetIndex + 1
             }
             
-            return newSubTweetList
+            // Get first item of next subtweet & check can insert into current sub tweet
+            var needRecheck = true
+            while needRecheck {
+                needRecheck = false
+                
+                subTweetIndex = 0
+                while subTweetIndex < newSubTweetList.count - 1 {
+                    // Reset prefix of current subTweet
+                    newSubTweetList[subTweetIndex][0] = "\(subTweetIndex + 1)/\(newSubTweetList.count)"
+                    // Reset prefix next sub tweet
+                    newSubTweetList[subTweetIndex + 1][0] = "\(subTweetIndex + 2)/\(newSubTweetList.count)"
+                    
+                    let firstItemNextSubTweet = newSubTweetList[subTweetIndex + 1][1]
+                    // Check can insert into current subtweet
+                    newSubTweetList[subTweetIndex].append(firstItemNextSubTweet)
+                    let totalCharacterSubTweet = self.getTotalCharacter(stringList: newSubTweetList[subTweetIndex])
+                    if totalCharacterSubTweet > 50 {
+                        let _ = newSubTweetList[subTweetIndex].removeLast()
+                        
+                        subTweetIndex = subTweetIndex + 1
+                    } else {
+                        // Check next subtweet can exist
+                        if newSubTweetList[subTweetIndex + 1].count <= 2 {
+                            newSubTweetList.remove(at: subTweetIndex + 1)
+                            
+                            needRecheck = true
+                        } else {
+                            newSubTweetList[subTweetIndex + 1].remove(at: 1)
+                        }
+                    }
+                }
+            }
+            
+            print(newSubTweetList)
+            // Create output
+            var resultSubTweet: [String] = []
+            for subTweet in newSubTweetList {
+                resultSubTweet.append(subTweet.joined(separator: " "))
+            }
+            
+            return resultSubTweet
         }
     }
     
